@@ -397,4 +397,121 @@
           const footer = document.createElement('div');
           footer.className = 'msg-footer';
           footer.innerHTML = '<span>' + new Date(data.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '</span> ' + ticksHTML;
-          div.appendChild(
+          div.appendChild(footer);
+
+          msgBox.appendChild(div);
+        });
+        msgBox.scrollTop = msgBox.scrollHeight;
+      });
+    }
+
+    document.getElementById('back-btn').addEventListener('click', () => {
+      if (unsubMessages) unsubMessages();
+      activeRoomId = null;
+      document.getElementById('chat-screen').style.display = 'none';
+      document.getElementById('home-screen').style.display = 'flex';
+    });
+
+    document.getElementById('send-btn').addEventListener('click', async () => {
+      const input = document.getElementById('msg-input');
+      const text = input.value.trim();
+      if (!text || !activeRoomId) return;
+      input.value = '';
+      const myMail = currentUser.email.toLowerCase();
+      await addDoc(collection(db, "rooms", activeRoomId, "messages"), {
+        text: text,
+        sender: myMail,
+        isAdmin: isAdmin,
+        seenBy: [myMail],
+        timestamp: Date.now()
+      });
+    });
+
+    document.getElementById('cam-btn').addEventListener('click', () => document.getElementById('photo-input').click());
+
+    document.getElementById('photo-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file || !activeRoomId) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          const scale = Math.min(600 / img.width, 1);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const myMail = currentUser.email.toLowerCase();
+          await addDoc(collection(db, "rooms", activeRoomId, "messages"), {
+            image: canvas.toDataURL('image/jpeg', 0.7),
+            sender: myMail,
+            isAdmin: isAdmin,
+            seenBy: [myMail],
+            timestamp: Date.now()
+          });
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('open-group-btn').addEventListener('click', () => {
+      const box = document.getElementById('group-user-checkboxes');
+      const myMail = currentUser.email.toLowerCase();
+      const others = allUsers.filter(u => u.email !== myMail);
+      box.innerHTML = others.length ? others.map(u => '<label style="display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;"><input type="checkbox" class="g-member-cb" value="' + u.email + '" style="width:auto; margin:0;"> ' + u.email + '</label>').join('') : '<p style="font-size:12px; color:#8696a0;">Abhi koi aur user online nahi hai.</p>';
+      document.getElementById('group-modal').style.display = 'flex';
+    });
+
+    document.getElementById('close-group-btn').addEventListener('click', () => document.getElementById('group-modal').style.display = 'none');
+    document.getElementById('open-theme-btn').addEventListener('click', () => document.getElementById('theme-modal').style.display = 'flex');
+    document.getElementById('chat-theme-btn').addEventListener('click', () => document.getElementById('theme-modal').style.display = 'flex');
+    document.getElementById('close-theme-btn').addEventListener('click', () => document.getElementById('theme-modal').style.display = 'none');
+    document.getElementById('admin-open-btn').addEventListener('click', () => document.getElementById('admin-modal').style.display = 'flex');
+    document.getElementById('close-admin-btn').addEventListener('click', () => document.getElementById('admin-modal').style.display = 'none');
+
+    document.querySelectorAll('.dot').forEach(dot => {
+      dot.addEventListener('click', () => {
+        const hex = dot.getAttribute('data-color');
+        document.documentElement.style.setProperty('--bubble-mine', hex);
+        localStorage.setItem('ix_bubble_color', hex);
+      });
+    });
+
+    document.getElementById('my-wallpaper-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const scale = Math.min(800 / img.width, 1);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          localStorage.setItem('ix_wallpaper', dataUrl);
+          document.getElementById('chat-screen').style.backgroundImage = "url(" + dataUrl + ")";
+          alert("Wallpaper set ho gaya!");
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('clear-wall-btn').addEventListener('click', () => {
+      localStorage.removeItem('ix_wallpaper');
+      document.getElementById('chat-screen').style.backgroundImage = 'none';
+    });
+
+    document.getElementById('update-banner-btn').addEventListener('click', async () => {
+      const text = document.getElementById('banner-input').value.trim();
+      if (!text) return;
+      await setDoc(doc(db, "settings", "config"), { banner: text }, { merge: true });
+      document.getElementById('admin-modal').style.display = 'none';
+      alert("Notice update ho gaya!");
+    });
+  </script>
+</body>
+</html>
