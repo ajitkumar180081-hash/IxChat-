@@ -9,7 +9,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0b141a; color: #e9edef; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
     
-    /* Login */
     #login-screen { display: flex; justify-content: center; align-items: center; height: 100%; padding: 20px; }
     .box { background: #202c33; padding: 24px; border-radius: 14px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     .box h2 { color: #00a884; margin-bottom: 8px; }
@@ -19,7 +18,6 @@
     .btn-red { background: #ef4444; color: white; }
     .btn-dark { background: #2a3942; color: #e9edef; }
 
-    /* Home / Chat List Screen */
     #home-screen { display: none; flex-direction: column; height: 100%; }
     .topbar { background: #202c33; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a3942; }
     #announcement-bar { background: rgba(0, 168, 132, 0.2); border-bottom: 1px solid #00a884; padding: 7px 12px; font-size: 12px; text-align: center; }
@@ -32,13 +30,11 @@
     .badge { background: #00a884; color: #111b21; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
     .badge-admin { background: #ef4444; color: white; }
 
-    /* Modals */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 15px; z-index: 50; }
     .modal-content { background: #202c33; padding: 18px; border-radius: 12px; width: 100%; max-width: 380px; max-height: 85vh; overflow-y: auto; }
     .color-dots { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
     .dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
 
-    /* Active Chat Screen */
     #chat-screen { display: none; flex-direction: column; height: 100%; background-size: cover; background-position: center; }
     #messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
     .msg { max-width: 80%; padding: 8px 11px; border-radius: 10px; background: #202c33; align-self: flex-start; position: relative; word-wrap: break-word; }
@@ -56,7 +52,6 @@
 </head>
 <body>
 
-  <!-- 1. LOGIN SCREEN -->
   <div id="login-screen">
     <div class="box">
       <h2>IxChat Pro</h2>
@@ -68,7 +63,6 @@
     </div>
   </div>
 
-  <!-- 2. HOME / CHATS & USERS LIST -->
   <div id="home-screen">
     <div class="topbar">
       <div>
@@ -76,9 +70,9 @@
         <span id="my-email-label" style="font-size:11px; color:#8696a0;"></span>
       </div>
       <div style="display:flex; gap:6px;">
-        <button class="btn btn-sm btn-dark" onclick="openModal('theme-modal')">🎨 Theme</button>
-        <button class="btn btn-sm" onclick="openModal('group-modal')">+ Group</button>
-        <button id="admin-open-btn" class="btn btn-sm btn-red" style="display:none;" onclick="openModal('admin-modal')">Admin</button>
+        <button class="btn btn-sm btn-dark" id="open-theme-btn">Theme</button>
+        <button class="btn btn-sm" id="open-group-btn">+ Group</button>
+        <button id="admin-open-btn" class="btn btn-sm btn-red" style="display:none;">Admin</button>
         <button class="btn btn-sm btn-dark" id="logout-btn">Exit</button>
       </div>
     </div>
@@ -86,75 +80,71 @@
     <div id="announcement-bar">Welcome to IxChat Pro!</div>
 
     <div class="tabs">
-      <div class="tab active" id="tab-chats" onclick="switchTab('chats')">My Chats & Groups</div>
-      <div class="tab" id="tab-users" onclick="switchTab('users')">All Users (DM)</div>
-      <div class="tab" id="tab-spy" style="display:none; color:#ef4444;" onclick="switchTab('spy')">👁️ All Rooms (Admin)</div>
+      <div class="tab active" id="tab-chats">My Chats & Groups</div>
+      <div class="tab" id="tab-users">All Users (DM)</div>
+      <div class="tab" id="tab-spy" style="display:none; color:#ef4444;">All Rooms (Admin)</div>
     </div>
 
     <div class="list-area" id="main-list"></div>
   </div>
 
-  <!-- 3. ACTIVE CHAT ROOM -->
   <div id="chat-screen">
     <div class="topbar">
       <div style="display:flex; align-items:center; gap:10px;">
-        <button class="btn btn-sm btn-dark" onclick="closeRoom()">← Back</button>
+        <button class="btn btn-sm btn-dark" id="back-btn">Back</button>
         <div>
           <h4 id="room-title" style="font-size:15px;">Chat</h4>
           <span id="room-sub" style="font-size:11px; color:#8696a0;"></span>
         </div>
       </div>
-      <button class="btn btn-sm btn-dark" onclick="openModal('theme-modal')">🎨</button>
+      <button class="btn btn-sm btn-dark" id="chat-theme-btn">Color</button>
     </div>
 
     <div id="messages"></div>
 
     <div class="input-bar">
       <input type="file" id="photo-input" accept="image/*" style="display:none;">
-      <button class="icon-btn" onclick="document.getElementById('photo-input').click()">📷</button>
+      <button class="icon-btn" id="cam-btn">Cam</button>
       <input type="text" id="msg-input" placeholder="Message likhein...">
-      <button class="icon-btn" style="background:#00a884; color:#111b21; font-weight:bold;" id="send-btn">➤</button>
+      <button class="icon-btn" style="background:#00a884; color:#111b21; font-weight:bold;" id="send-btn">Send</button>
     </div>
   </div>
 
-  <!-- MODAL: CREATE GROUP -->
   <div class="modal" id="group-modal">
     <div class="modal-content">
       <h3 style="margin-bottom:10px;">Naya Group Banayein</h3>
       <input type="text" id="new-group-name" placeholder="Group ka naam likhein...">
       <p style="font-size:12px; color:#8696a0; margin-top:8px;">Members chunein:</p>
       <div id="group-user-checkboxes" style="max-height:150px; overflow-y:auto; margin:8px 0; text-align:left;"></div>
-      <button class="btn" onclick="createGroup()">Group Create Karein</button>
-      <button class="btn btn-dark" onclick="closeModal('group-modal')">Cancel</button>
+      <button class="btn" id="create-group-btn">Group Create Karein</button>
+      <button class="btn btn-dark" id="close-group-btn">Cancel</button>
     </div>
   </div>
 
-  <!-- MODAL: THEME & WALLPAPER (FOR ALL USERS) -->
   <div class="modal" id="theme-modal">
     <div class="modal-content">
       <h3 style="margin-bottom:8px;">Apna Chat Style Badlein</h3>
       <p style="font-size:12px; color:#8696a0;">Apne messages ka colour chunein:</p>
       <div class="color-dots">
-        <div class="dot" style="background:#005c4b;" onclick="setBubbleColor('#005c4b')"></div>
-        <div class="dot" style="background:#1d4ed8;" onclick="setBubbleColor('#1d4ed8')"></div>
-        <div class="dot" style="background:#7e22ce;" onclick="setBubbleColor('#7e22ce')"></div>
-        <div class="dot" style="background:#be123c;" onclick="setBubbleColor('#be123c')"></div>
-        <div class="dot" style="background:#374151;" onclick="setBubbleColor('#374151')"></div>
+        <div class="dot" style="background:#005c4b;" data-color="#005c4b"></div>
+        <div class="dot" style="background:#1d4ed8;" data-color="#1d4ed8"></div>
+        <div class="dot" style="background:#7e22ce;" data-color="#7e22ce"></div>
+        <div class="dot" style="background:#be123c;" data-color="#be123c"></div>
+        <div class="dot" style="background:#374151;" data-color="#374151"></div>
       </div>
       <p style="font-size:12px; color:#8696a0; margin-top:12px;">Apna Chat Wallpaper lagayein:</p>
       <input type="file" id="my-wallpaper-input" accept="image/*">
-      <button class="btn btn-dark" onclick="clearMyWallpaper()">Wallpaper Hatayein</button>
-      <button class="btn" onclick="closeModal('theme-modal')">Done</button>
+      <button class="btn btn-dark" id="clear-wall-btn">Wallpaper Hatayein</button>
+      <button class="btn" id="close-theme-btn">Done</button>
     </div>
   </div>
 
-  <!-- MODAL: ADMIN CONTROLS -->
   <div class="modal" id="admin-modal">
     <div class="modal-content">
       <h3 style="color:#ef4444; margin-bottom:8px;">Admin Super Controls</h3>
       <input type="text" id="banner-input" placeholder="Sabke liye Top Notice likhein...">
-      <button class="btn" onclick="updateGlobalBanner()">Notice Update Karein</button>
-      <button class="btn btn-dark" onclick="closeModal('admin-modal')">Close</button>
+      <button class="btn" id="update-banner-btn">Notice Update Karein</button>
+      <button class="btn btn-dark" id="close-admin-btn">Close</button>
     </div>
   </div>
 
@@ -186,13 +176,11 @@
     let activeRoomId = null;
     let unsubMessages = null;
 
-    // Load saved personal theme
     const savedColor = localStorage.getItem('ix_bubble_color');
     if (savedColor) document.documentElement.style.setProperty('--bubble-mine', savedColor);
     const savedWall = localStorage.getItem('ix_wallpaper');
-    if (savedWall) document.getElementById('chat-screen').style.backgroundImage = `url(${savedWall})`;
+    if (savedWall) document.getElementById('chat-screen').style.backgroundImage = "url(" + savedWall + ")";
 
-    // Login
     document.getElementById('login-btn').addEventListener('click', () => {
       const email = document.getElementById('email').value.trim();
       const pass = document.getElementById('password').value.trim();
@@ -221,19 +209,21 @@
           document.getElementById('tab-spy').style.display = 'block';
         }
 
-        // Register user in directory so everyone can see email & DM
-        await setDoc(doc(db, "users", user.email.toLowerCase()), {
-          email: user.email.toLowerCase(),
-          lastSeen: Date.now()
-        }, { merge: true });
+        try {
+          await setDoc(doc(db, "users", user.email.toLowerCase()), {
+            email: user.email.toLowerCase(),
+            lastSeen: Date.now()
+          }, { merge: true });
 
-        // Ensure Global Public Group exists
-        await setDoc(doc(db, "rooms", "global_group"), {
-          name: "🌍 IxChat Global Group",
-          type: "public",
-          members: ["ALL"],
-          createdBy: ADMIN_EMAIL
-        }, { merge: true });
+          await setDoc(doc(db, "rooms", "global_group"), {
+            name: "IxChat Global Group",
+            type: "public",
+            members: ["ALL"],
+            createdBy: ADMIN_EMAIL
+          }, { merge: true });
+        } catch (err) {
+          console.log("Firestore setup note:", err.message);
+        }
 
         listenData();
       } else {
@@ -244,21 +234,18 @@
     });
 
     function listenData() {
-      // Global banner
       onSnapshot(doc(db, "settings", "config"), (snap) => {
         if (snap.exists() && snap.data().banner) {
           document.getElementById('announcement-bar').innerText = snap.data().banner;
         }
       });
 
-      // All Users Directory
       onSnapshot(collection(db, "users"), (snap) => {
         allUsers = [];
         snap.forEach(d => allUsers.push(d.data()));
         renderList();
       });
 
-      // All Rooms (DMs + Groups)
       onSnapshot(collection(db, "rooms"), (snap) => {
         allRooms = [];
         snap.forEach(d => allRooms.push({ id: d.id, ...d.data() }));
@@ -266,12 +253,16 @@
       });
     }
 
-    window.switchTab = (tab) => {
+    function switchTab(tab) {
       currentTab = tab;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
       renderList();
-    };
+    }
+
+    document.getElementById('tab-chats').addEventListener('click', () => switchTab('chats'));
+    document.getElementById('tab-users').addEventListener('click', () => switchTab('users'));
+    document.getElementById('tab-spy').addEventListener('click', () => switchTab('spy'));
 
     function renderList() {
       const box = document.getElementById('main-list');
@@ -283,22 +274,15 @@
           if (u.email === myMail) return;
           const div = document.createElement('div');
           div.className = 'chat-item';
-          div.innerHTML = `
-            <div>
-              <strong>${u.email.split('@')[0]}</strong>
-              <div style="font-size:12px; color:#8696a0;">${u.email}</div>
-            </div>
-            <span class="badge">Message करें</span>
-          `;
-          div.onclick = () => startDirectChat(u.email);
+          div.innerHTML = '<div><strong>' + u.email.split('@')[0] + '</strong><div style="font-size:12px; color:#8696a0;">' + u.email + '</div></div><span class="badge">Message</span>';
+          div.addEventListener('click', () => startDirectChat(u.email));
           box.appendChild(div);
         });
-      } 
-      else if (currentTab === 'chats') {
+      } else if (currentTab === 'chats') {
         const myRooms = allRooms.filter(r => r.type === 'public' || (r.members && r.members.includes(myMail)));
         myRooms.forEach(r => {
           let title = r.name;
-          let sub = r.type === 'dm' ? 'Personal Chat' : `Group (${r.members.length} members)`;
+          let sub = r.type === 'dm' ? 'Personal Chat' : 'Group (' + r.members.length + ' members)';
           if (r.type === 'dm') {
             const other = r.members.find(m => m !== myMail) || myMail;
             title = other.split('@')[0];
@@ -306,31 +290,18 @@
           }
           const div = document.createElement('div');
           div.className = 'chat-item';
-          div.innerHTML = `
-            <div>
-              <strong>${title}</strong>
-              <div style="font-size:12px; color:#8696a0;">${sub}</div>
-            </div>
-            <span class="badge">${r.type === 'dm' ? 'DM' : 'Group'}</span>
-          `;
-          div.onclick = () => openRoom(r.id, title, sub);
+          div.innerHTML = '<div><strong>' + title + '</strong><div style="font-size:12px; color:#8696a0;">' + sub + '</div></div><span class="badge">' + (r.type === 'dm' ? 'DM' : 'Group') + '</span>';
+          div.addEventListener('click', () => openRoom(r.id, title, sub));
           box.appendChild(div);
         });
-      }
-      else if (currentTab === 'spy' && isAdmin) {
+      } else if (currentTab === 'spy' && isAdmin) {
         allRooms.forEach(r => {
-          const title = r.type === 'dm' ? `DM: ${r.members.join(' ↔ ')}` : r.name;
-          const sub = `Created by: ${r.createdBy || 'System'}`;
+          const title = r.type === 'dm' ? 'DM: ' + r.members.join(' <-> ') : r.name;
+          const sub = 'Created by: ' + (r.createdBy || 'System');
           const div = document.createElement('div');
           div.className = 'chat-item';
-          div.innerHTML = `
-            <div>
-              <strong style="color:#fca5a5;">${title}</strong>
-              <div style="font-size:11px; color:#8696a0;">${sub}</div>
-            </div>
-            <span class="badge badge-admin">Spy View</span>
-          `;
-          div.onclick = () => openRoom(r.id, title, "Admin Surveillance Mode");
+          div.innerHTML = '<div><strong style="color:#fca5a5;">' + title + '</strong><div style="font-size:11px; color:#8696a0;">' + sub + '</div></div><span class="badge badge-admin">Spy View</span>';
+          div.addEventListener('click', () => openRoom(r.id, title, "Admin Surveillance Mode"));
           box.appendChild(div);
         });
       }
@@ -349,23 +320,23 @@
       openRoom(roomId, otherEmail.split('@')[0], otherEmail);
     }
 
-    window.createGroup = async () => {
+    document.getElementById('create-group-btn').addEventListener('click', async () => {
       const gName = document.getElementById('new-group-name').value.trim();
-      if (!gName) return alert("Group ka naam likhein!");
+      if (!gName) { alert("Group ka naam likhein!"); return; }
       const checked = Array.from(document.querySelectorAll('.g-member-cb:checked')).map(cb => cb.value);
       const myMail = currentUser.email.toLowerCase();
       const members = Array.from(new Set([myMail, ...checked]));
 
       const docRef = await addDoc(collection(db, "rooms"), {
-        name: "👥 " + gName,
+        name: gName,
         type: "group",
         members: members,
         createdBy: myMail
       });
-      closeModal('group-modal');
+      document.getElementById('group-modal').style.display = 'none';
       document.getElementById('new-group-name').value = '';
-      openRoom(docRef.id, "👥 " + gName, `${members.length} members`);
-    };
+      openRoom(docRef.id, gName, members.length + " members");
+    });
 
     function openRoom(roomId, title, sub) {
       activeRoomId = roomId;
@@ -385,7 +356,6 @@
           const data = docSnap.data();
           const isMine = data.sender === myMail;
 
-          // Mark as seen if someone else sent it
           if (!isMine && (!data.seenBy || !data.seenBy.includes(myMail))) {
             updateDoc(doc(db, "rooms", roomId, "messages", docSnap.id), {
               seenBy: arrayUnion(myMail)
@@ -393,22 +363,38 @@
           }
 
           const seenCount = (data.seenBy || []).filter(e => e !== data.sender).length;
-          const ticksHTML = isMine 
-            ? (seenCount > 0 ? `<span class="seen-blue">✓✓ Seen</span>` : `<span>✓✓</span>`) 
-            : '';
-
+          const ticksHTML = isMine ? (seenCount > 0 ? '<span class="seen-blue">Seen</span>' : '<span>Sent</span>') : '';
           const canDelete = isMine || isAdmin;
-          const delHTML = canDelete ? `<button class="del-btn" onclick="deleteMsg('${docSnap.id}')">🗑️</button>` : '';
-          const redTick = data.isAdmin ? `<span class="red-tick">✓</span>` : '';
+          const redTick = data.isAdmin ? '<span class="red-tick">A</span>' : '';
 
           const div = document.createElement('div');
-          div.className = `msg ${isMine ? 'mine' : ''}`;
-          div.innerHTML = `
-            <div class="msg-meta">
-              <span style="color:#53bdeb; font-weight:bold;">${data.sender} ${redTick}</span>
-              ${delHTML}
-            </div>
-            ${data.text ? `<div>${data.text}</div>` : ''}
-            ${data.image ? `<img src="${data.image}" />` : ''}
-            <div class="msg-footer">
-              <span>${new Date(data.timestamp).toLocaleTi
+          div.className = 'msg ' + (isMine ? 'mine' : '');
+
+          const meta = document.createElement('div');
+          meta.className = 'msg-meta';
+          meta.innerHTML = '<span style="color:#53bdeb; font-weight:bold;">' + data.sender + ' ' + redTick + '</span>';
+
+          if (canDelete) {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'del-btn';
+            delBtn.innerText = 'Del';
+            delBtn.addEventListener('click', () => deleteDoc(doc(db, "rooms", activeRoomId, "messages", docSnap.id)));
+            meta.appendChild(delBtn);
+          }
+          div.appendChild(meta);
+
+          if (data.text) {
+            const txtDiv = document.createElement('div');
+            txtDiv.innerText = data.text;
+            div.appendChild(txtDiv);
+          }
+          if (data.image) {
+            const imgEl = document.createElement('img');
+            imgEl.src = data.image;
+            div.appendChild(imgEl);
+          }
+
+          const footer = document.createElement('div');
+          footer.className = 'msg-footer';
+          footer.innerHTML = '<span>' + new Date(data.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '</span> ' + ticksHTML;
+          div.appendChild(
