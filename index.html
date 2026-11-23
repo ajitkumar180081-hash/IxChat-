@@ -125,8 +125,7 @@
       const pass = document.getElementById('password').value.trim();
       signInWithEmailAndPassword(auth, email, pass)
         .catch(err => {
-          document.getElementById('login-error').innerText = document.getElementById('login-error').innerText = err.message;
-";
+          document.getElementById('login-error').innerText = err.message;
         });
     };
 
