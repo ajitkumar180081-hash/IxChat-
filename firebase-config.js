@@ -1,7 +1,3 @@
-/* ==========================================================================
-   FIREBASE CONFIGURATION FILE (firebase-config.js)
-   ========================================================================== */
-
 export const firebaseConfig = {
   apiKey: "AIzaSyCgv2pmfJv_ki7iZkdWlU4u1RbLM0p3JsA",
   authDomain: "ixchat-92440.firebaseapp.com",
