@@ -1,1 +1,230 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IxChat</title>
+  <link rel="stylesheet" href="ix-theme.css">
+  <link rel="stylesheet" href="ix-feeds.css">
+  <link rel="stylesheet" href="ix-chat-room.css">
+  <style>
+    .ix-auth-wrap { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; padding: 24px; text-align: center; }
+    .ix-auth-card { background: var(--ix-bg-surface); padding: 28px 22px; border-radius: 18px; width: 100%; max-width: 360px; border: 1px solid var(--ix-border); }
+    .ix-auth-input { width: 100%; padding: 13px 15px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--ix-border); background: var(--ix-bg-main); color: var(--ix-text-primary); font-size: 15px; outline: none; }
+    .ix-btn-primary { width: 100%; padding: 13px; margin-top: 10px; border: none; border-radius: 12px; background: var(--ix-primary); color: #0b141a; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .ix-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); justify-content: center; align-items: center; padding: 16px; z-index: 300; }
+    .ix-modal-overlay.open { display: flex; }
+    .ix-modal-box { background: var(--ix-bg-elevated); padding: 20px; border-radius: 16px; width: 100%; max-width: 380px; border: 1px solid var(--ix-border); max-height: 85dvh; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <div id="ix-app">
+
+    <!-- LOGIN SCREEN -->
+    <div id="screen-login" class="ix-screen active">
+      <div class="ix-auth-wrap">
+        <div class="ix-auth-card">
+          <h2 style="color:var(--ix-primary); font-size:24px; margin-bottom:6px;">IxChat</h2>
+          <p style="font-size:13px; color:var(--ix-text-secondary); margin-bottom:18px;">Apni Email aur Password se login karein</p>
+          <input type="email" id="login-email" class="ix-auth-input" placeholder="Email ID daalein">
+          <input type="password" id="login-pass" class="ix-auth-input" placeholder="Password daalein">
+          <button id="btn-login-submit" class="ix-btn-primary">Login Karein</button>
+          <button id="btn-signup-submit" class="ix-btn-primary" style="background:var(--ix-bg-elevated); color:var(--ix-text-primary); margin-top:8px;">Naya Account Banayein</button>
+          <p id="auth-error-msg" style="color:var(--ix-danger); font-size:12px; margin-top:12px; font-weight:600;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN HOME SCREEN -->
+    <div id="screen-home" class="ix-screen">
+      <div class="ix-topbar">
+        <div class="ix-brand-title" id="header-title">IxChat</div>
+        <div class="ix-topbar-actions">
+          <button class="ix-icon-action" id="btn-top-qr">⊞</button>
+          <button class="ix-icon-action" id="btn-top-cam">📷</button>
+          <button class="ix-icon-action" id="btn-top-menu">⋮</button>
+        </div>
+      </div>
+
+      <!-- 3-DOTS MENU -->
+      <div id="ix-main-menu" class="ix-dropdown-menu">
+        <div class="ix-menu-item" id="menu-new-group">New group</div>
+        <div class="ix-menu-item" id="menu-new-community">New community</div>
+        <div class="ix-menu-item" id="menu-broadcast">Broadcast lists</div>
+        <div class="ix-menu-item" id="menu-explore">Find Friends & Users</div>
+        <div class="ix-menu-item" id="menu-settings">Settings</div>
+        <div class="ix-menu-item admin-only" id="menu-admin" style="display:none;">Admin Panel</div>
+      </div>
+
+      <div id="ix-global-notice" style="display:none;"></div>
+
+      <div class="ix-search-wrapper">
+        <div class="ix-search-box">
+          <span style="color:var(--ix-text-secondary);">🔍</span>
+          <input type="text" id="ix-global-search" placeholder="Ask Meta AI or Search">
+        </div>
+      </div>
+
+      <!-- TAB 1: CHATS -->
+      <div id="panel-chats" class="ix-tab-panel active">
+        <div class="ix-filter-chips">
+          <button class="ix-chip active" data-filter="all">All</button>
+          <button class="ix-chip" data-filter="unread">Unread</button>
+          <button class="ix-chip" data-filter="groups">Groups</button>
+        </div>
+        <div id="list-chats"></div>
+      </div>
+
+      <!-- TAB 2: UPDATES (STATUS + CHANNELS) -->
+      <div id="panel-updates" class="ix-tab-panel">
+        <div class="ix-updates-section">
+          <div class="ix-section-title">Status</div>
+          <div class="ix-status-row" id="list-status"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:18px; margin-bottom:10px;">
+            <div class="ix-section-title" style="margin:0;">Channels</div>
+            <button id="btn-new-channel" class="ix-btn-follow">+ Create</button>
+          </div>
+          <div id="list-channels"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: COMMUNITIES -->
+      <div id="panel-communities" class="ix-tab-panel">
+        <div class="ix-community-box" id="btn-create-comm-card" style="cursor:pointer;">
+          <div class="ix-community-header" style="margin:0;">
+            <div class="ix-community-icon">👥+</div>
+            <div>
+              <h4 style="font-size:16px;">New community</h4>
+              <p style="font-size:12px; color:var(--ix-text-secondary);">Bring your groups together</p>
+            </div>
+          </div>
+        </div>
+        <div id="list-communities"></div>
+      </div>
+
+      <!-- TAB 4: CALLS & EXPLORE -->
+      <div id="panel-calls" class="ix-tab-panel">
+        <div style="padding:12px 16px 4px 16px; font-weight:700; color:var(--ix-text-secondary); font-size:13px;">PEOPLE & DIRECTORY</div>
+        <div id="list-directory"></div>
+        <div style="padding:14px 16px 4px 16px; font-weight:700; color:var(--ix-text-secondary); font-size:13px;">RECENT CALLS</div>
+        <div id="list-calls"></div>
+      </div>
+
+      <!-- FLOATING ACTION BUTTON -->
+      <div class="ix-fab-group">
+        <button class="ix-fab-main" id="btn-main-fab">💬</button>
+      </div>
+
+      <!-- BOTTOM NAVIGATION BAR -->
+      <div class="ix-bottom-nav">
+        <button class="ix-nav-btn active" data-tab="chats">
+          <div class="ix-nav-icon-pill">💬</div>
+          <span class="ix-nav-label">Chats</span>
+        </button>
+        <button class="ix-nav-btn" data-tab="updates">
+          <div class="ix-nav-icon-pill">⭕</div>
+          <span class="ix-nav-label">Updates</span>
+        </button>
+        <button class="ix-nav-btn" data-tab="communities">
+          <div class="ix-nav-icon-pill">👥</div>
+          <span class="ix-nav-label">Communities</span>
+        </button>
+        <button class="ix-nav-btn" data-tab="calls">
+          <div class="ix-nav-icon-pill">📞</div>
+          <span class="ix-nav-label">Calls</span>
+        </button>
+      </div>
+    </div>
+        <!-- CHAT ROOM SCREEN -->
+    <div id="screen-chatroom" class="ix-screen">
+      <div class="ix-chatroom-screen">
+        <div class="ix-chat-header">
+          <div class="ix-chat-header-left">
+            <button class="ix-back-btn" id="btn-chat-back">←</button>
+            <div class="ix-chat-user-meta">
+              <span class="ix-chat-user-title" id="chat-room-title">User</span>
+              <span class="ix-chat-user-status" id="chat-room-sub">online</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button class="ix-icon-action" id="btn-room-video">📹</button>
+            <button class="ix-icon-action" id="btn-room-call">📞</button>
+          </div>
+        </div>
+
+        <div id="ix-messages-container"></div>
+
+        <div class="ix-input-bar" id="ix-chat-input-bar">
+          <input type="file" id="chat-media-file" accept="image/*,video/*" style="display:none;">
+          <div class="ix-input-field-wrap">
+            <input type="text" id="chat-msg-input" placeholder="Message">
+            <button class="ix-chat-action-icon" id="btn-chat-attach">📎</button>
+          </div>
+          <button class="ix-send-mic-btn" id="btn-chat-send">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS & PROFILE SCREEN -->
+    <div id="screen-settings" class="ix-screen">
+      <div class="ix-topbar" style="border-bottom:1px solid var(--ix-border);">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <button class="ix-back-btn" id="btn-settings-back">←</button>
+          <span style="font-size:19px; font-weight:600;">Settings</span>
+        </div>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding-bottom:30px;">
+        <div class="ix-settings-header">
+          <div class="ix-avatar" style="width:64px; height:64px; font-size:24px;" id="set-avatar-letter">A</div>
+          <div style="flex:1;">
+            <h3 id="set-user-name" style="font-size:18px;">User Name</h3>
+            <p id="set-user-bio" style="font-size:13px; color:var(--ix-text-secondary);">Today in emoji... 😎🔥</p>
+          </div>
+          <button class="ix-icon-action" id="btn-edit-profile">✏️</button>
+        </div>
+
+        <div class="ix-settings-group">
+          <div class="ix-setting-tile" id="tile-appearance">
+            <span class="ix-setting-icon">🎨</span>
+            <div class="ix-setting-content">
+              <h4>Appearance</h4>
+              <p>Chat bubble color & wallpaper</p>
+            </div>
+          </div>
+          <div class="ix-setting-tile" id="tile-privacy">
+            <span class="ix-setting-icon">🔒</span>
+            <div class="ix-setting-content">
+              <h4>Privacy</h4>
+              <p>Blocked accounts, disappearing messages</p>
+            </div>
+          </div>
+          <div class="ix-setting-tile" id="tile-chats">
+            <span class="ix-setting-icon">💬</span>
+            <div class="ix-setting-content">
+              <h4>Chats</h4>
+              <p>Theme, wallpapers, chat history</p>
+            </div>
+          </div>
+          <div class="ix-setting-tile" id="tile-logout">
+            <span class="ix-setting-icon" style="color:var(--ix-danger);">🚪</span>
+            <div class="ix-setting-content">
+              <h4 style="color:var(--ix-danger);">Logout</h4>
+              <p>Sign out from this device</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODALS -->
+  <div id="modal-generic" class="ix-modal-overlay">
+    <div class="ix-modal-box" id="modal-generic-body"></div>
+  </div>
+
+  <script type="module" src="ix-core.js"></script>
+</body>
+</html>
