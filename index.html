@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IxChat Monster Pro</title>
+  <link rel="stylesheet" href="theme-base.css">
+  <style>
+    /* Chat & Specific UI Overrides */
+    #login-screen { justify-content: center; align-items: center; padding: 20px; }
+    .auth-box { background: var(--ix-panel-bg); padding: 26px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .auth-box h2 { color: var(--ix-primary); margin-bottom: 6px; }
+    input, textarea, select { width: 100%; padding: 12px 14px; margin: 7px 0; border-radius: 10px; border: 1px solid var(--ix-border); background: #111b21; color: var(--ix-text-main); font-size: 15px; outline: none; }
+    .btn { width: 100%; padding: 12px; margin-top: 8px; border: none; border-radius: 10px; background: var(--ix-primary); color: #111b21; font-weight: 700; font-size: 15px; cursor: pointer; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; border-radius: 8px; }
+    .btn-red { background: var(--ix-danger); color: #fff; }
+    .btn-dark { background: var(--ix-border); color: var(--ix-text-main); }
+    .btn-blue { background: var(--ix-channel-blue); color: #fff; }
+    #announcement-bar { background: rgba(0, 168, 132, 0.18); border-bottom: 1px solid var(--ix-primary); padding: 6px 12px; font-size: 12px; text-align: center; flex-shrink: 0; }
+    #messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .msg { max-width: 82%; padding: 9px 12px; border-radius: 12px; background: var(--ix-other-bubble); align-self: flex-start; word-wrap: break-word; }
+    .msg.mine { background: var(--ix-my-bubble); align-self: flex-end; }
+    .msg-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; color: var(--ix-text-muted); margin-bottom: 4px; }
+    .admin-pill { background: var(--ix-danger); color: #fff; padding: 1px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+    .msg img, .msg video { max-width: 100%; max-height: 280px; border-radius: 8px; margin-top: 5px; display: block; }
+    .msg-footer { display: flex; justify-content: flex-end; align-items: center; gap: 6px; font-size: 10px; color: rgba(255,255,255,0.65); margin-top: 4px; }
+    .seen-blue { color: #53bdeb; font-weight: bold; }
+    .input-bar { background: var(--ix-panel-bg); padding: 8px 10px; display: flex; gap: 6px; align-items: center; border-top: 1px solid var(--ix-border); flex-shrink: 0; position: relative; z-index: 20; }
+    .input-bar input[type="text"] { flex: 1; margin: 0; border-radius: 22px; background: var(--ix-border); border: none; padding: 10px 14px; font-size: 15px; }
+    .icon-btn { background: var(--ix-border); color: #fff; border: none; width: 38px; height: 38px; border-radius: 50%; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); justify-content: center; align-items: center; padding: 15px; z-index: 100; }
+    .modal-content { background: var(--ix-panel-bg); padding: 18px; border-radius: 14px; width: 100%; max-width: 400px; max-height: 85dvh; overflow-y: auto; }
+    .color-dots { display: flex; gap: 10px; justify-content: center; margin: 10px 0; }
+    .dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; }
+  </style>
+</head>
+<body>
+
+  <div id="app-container">
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="app-screen active">
+      <div class="auth-box">
+        <h2>IxChat Monster</h2>
+        <p style="font-size:12px; color:var(--ix-text-muted); margin-bottom:14px;">WhatsApp x Instagram x Telegram Hybrid</p>
+        <input type="email" id="email" placeholder="Apni Email ID daalein">
+        <input type="password" id="password" placeholder="Password daalein">
+        <button class="btn" id="login-btn">Login Karein</button>
+        <p id="login-error" style="color:var(--ix-danger); font-size:12px; margin-top:10px; font-weight:bold;"></p>
+      </div>
+    </div>
+
+    <!-- HOME DASHBOARD SCREEN -->
+    <div id="home-screen" class="app-screen">
+      <div class="app-header">
+        <div class="app-brand">
+          <h1>IxChat</h1>
+          <span id="my-email-label"></span>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm btn-dark" id="open-theme-btn">Theme</button>
+          <button class="btn btn-sm" id="open-group-btn">+ Group</button>
+          <button class="btn btn-sm btn-blue" id="open-channel-btn">+ Channel</button>
+          <button id="admin-open-btn" class="btn btn-sm btn-red" style="display:none;">Admin</button>
+          <button class="btn btn-sm btn-dark" id="logout-btn">Exit</button>
+        </div>
+      </div>
+
+      <div id="announcement-bar">Welcome to IxChat Monster Network!</div>
+
+      <div class="nav-tabs-container">
+        <div class="tab-item active" id="tab-chats">Chats</div>
+        <div class="tab-item" id="tab-channels">Channels</div>
+        <div class="tab-item" id="tab-explore">Explore</div>
+        <div class="tab-item" id="tab-reels">Reels</div>
+        <div class="tab-item" id="tab-spy" style="display:none; color:var(--ix-danger);">Spy View</div>
+      </div>
+
+      <div class="content-scroll-area" id="main-list"></div>
+    </div>
+
+    <!-- CHAT ROOM SCREEN -->
+    <div id="chat-screen" class="app-screen">
+      <div class="app-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn btn-sm btn-dark" id="back-btn">Back</button>
+          <div class="app-brand">
+            <h4 id="room-title" style="font-size:15px; color:var(--ix-primary);">Chat</h4>
+            <span id="room-sub"></span>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-dark" id="chat-theme-btn">Color</button>
+      </div>
+
+      <div id="messages"></div>
+
+      <div class="input-bar">
+        <input type="file" id="media-input" accept="image/*,video/*" style="display:none;">
+        <button class="icon-btn" id="media-btn">📷</button>
+        <input type="text" id="msg-input" placeholder="Message ya Reel link bhejein...">
+        <button class="icon-btn" style="background:var(--ix-primary); color:#111b21;" id="send-btn">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal" id="group-modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom:10px;">Naya Group Banayein</h3>
+      <input type="text" id="new-group-name" placeholder="Group ka naam...">
+      <p style="font-size:12px; color:var(--ix-text-muted); margin-top:8px;">Members chunein:</p>
+      <div id="group-user-checkboxes" style="max-height:140px; overflow-y:auto; margin:8px 0; text-align:left;"></div>
+      <button class="btn" id="create-group-btn">Create Group</button>
+      <button class="btn btn-dark" id="close-group-btn" style="margin-top:6px;">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="channel-modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom:10px; color:var(--ix-channel-blue);">Naya Channel Banayein</h3>
+      <input type="text" id="new-channel-name" placeholder="Channel ka naam (e.g. Tech News)...">
+      <button class="btn btn-blue" id="create-channel-btn">Launch Channel</button>
+      <button class="btn btn-dark" id="close-channel-btn" style="margin-top:6px;">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="theme-modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom:8px;">App Style & Wallpaper</h3>
+      <p style="font-size:12px; color:var(--ix-text-muted);">Bubble Colour:</p>
+      <div class="color-dots">
+        <div class="dot" style="background:#005c4b;" data-color="#005c4b"></div>
+        <div class="dot" style="background:#1d4ed8;" data-color="#1d4ed8"></div>
+        <div class="dot" style="background:#7e22ce;" data-color="#7e22ce"></div>
+        <div class="dot" style="background:#be123c;" data-color="#be123c"></div>
+        <div class="dot" style="background:#374151;" data-color="#374151"></div>
+      </div>
+      <p style="font-size:12px; color:var(--ix-text-muted); margin-top:10px;">Wallpaper Image:</p>
+      <input type="file" id="my-wallpaper-input" accept="image/*">
+      <button class="btn btn-dark" id="clear-wall-btn" style="margin-top:6px;">Remove Wallpaper</button>
+      <button class="btn" id="close-theme-btn" style="margin-top:6px;">Done</button>
+    </div>
+  </div>
+
+  <div class="modal" id="admin-modal">
+    <div class="modal-content">
+      <h3 style="color:var(--ix-danger); margin-bottom:8px;">Super Admin Panel</h3>
+      <input type="text" id="banner-input" placeholder="Sabke liye Top Notice likhein...">
+      <button class="btn" id="update-banner-btn">Update Notice</button>
+      <hr style="border:0; border-top:1px solid var(--ix-border); margin:12px 0;">
+      <p style="font-size:12px; color:var(--ix-text-muted); margin-bottom:6px;">Kisi user ko Co-Admin banayein:</p>
+      <input type="email" id="promote-email" placeholder="User ki email daalein...">
+      <button class="btn btn-red" id="promote-btn">Make Co-Admin</button>
+      <button class="btn btn-dark" id="close-admin-btn" style="margin-top:10px;">Close Panel</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP LOGIC ENGINE -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
